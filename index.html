@@ -61,12 +61,15 @@
     .donut-center-pct{font-size:16px;font-weight:700;color:var(--text)}
     .donut-center-label{font-size:9px;color:var(--text3)}
     .legend{flex:1}
-    .legend-item{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+    .legend-item{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;cursor:pointer;padding:3px 5px;border-radius:8px;transition:background .15s}
     .legend-item:last-child{margin-bottom:0}
+    .legend-item:active{background:rgba(255,255,255,.05)}
     .legend-left{display:flex;align-items:center;gap:7px}
     .legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
     .legend-name{font-size:11px;color:var(--text2)}
+    .legend-right{display:flex;align-items:center;gap:6px}
     .legend-pct{font-size:12px;font-weight:600;color:var(--text)}
+    .legend-arrow{font-size:11px;color:var(--text3)}
 
     /* TRANSACTIONS */
     .tx-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
@@ -145,6 +148,60 @@
     .settings-item-val{font-size:13px;color:var(--text3)}
     .settings-item-btn{font-size:13px;color:var(--accent);cursor:pointer;margin-left:10px}
 
+    /* ── CATEGORY DETAIL SCREEN ───────────────── */
+    .catdetail-header{
+      padding:52px 20px 0;
+      display:flex;align-items:center;gap:12px;
+    }
+    .back-btn{
+      width:36px;height:36px;
+      background:var(--card);border:1px solid var(--border);
+      border-radius:10px;display:flex;align-items:center;
+      justify-content:center;font-size:18px;color:var(--text2);
+      cursor:pointer;flex-shrink:0;
+    }
+    .catdetail-title-wrap{flex:1}
+    .catdetail-icon{font-size:22px;line-height:1}
+    .catdetail-name{font-size:18px;font-weight:600;color:var(--text)}
+    .catdetail-month{font-size:11px;color:var(--text3);margin-top:1px}
+
+    .catdetail-stats{
+      display:flex;gap:10px;
+      padding:16px 16px 0;
+    }
+    .catdetail-stat{
+      flex:1;background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;padding:12px;text-align:center;
+    }
+    .catdetail-stat-label{font-size:10px;color:var(--text3);margin-bottom:4px}
+    .catdetail-stat-val{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text)}
+
+    .catdetail-bar-wrap{padding:16px 16px 0}
+    .catdetail-bar-card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:14px 16px;
+    }
+    .catdetail-bar-label{
+      display:flex;justify-content:space-between;
+      font-size:11px;color:var(--text3);margin-bottom:8px;
+    }
+    .catdetail-bar-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+    .catdetail-bar-fill{height:100%;border-radius:4px;transition:width .7s ease}
+
+    .catdetail-list-wrap{padding:16px}
+    .catdetail-list-title{
+      font-size:11px;color:var(--text3);
+      text-transform:uppercase;letter-spacing:.08em;
+      margin-bottom:10px;font-weight:500;
+    }
+    .catdetail-month-group{margin-bottom:14px}
+    .catdetail-month-label{
+      font-size:11px;color:var(--text3);
+      text-transform:uppercase;letter-spacing:.06em;
+      margin-bottom:6px;
+    }
+
     /* MODALS */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:flex-end;justify-content:center}
     .modal-overlay.open{display:flex}
@@ -219,7 +276,7 @@
     </div>
 
     <div class="section" style="margin-top:16px">
-      <div class="section-title">Gastos por categoría</div>
+      <div class="section-title">Gastos por categoría — toca para ver detalle</div>
       <div class="donut-card">
         <div class="donut-wrap">
           <canvas id="donutChart" width="100" height="100"></canvas>
@@ -237,6 +294,54 @@
     <div class="section">
       <div class="section-title">Últimas transacciones</div>
       <div class="tx-card" id="recent-tx-list">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CATEGORY DETAIL ───────────────────── -->
+  <div class="screen" id="screen-catdetail">
+    <div class="catdetail-header">
+      <div class="back-btn" onclick="goBackFromCatDetail()">‹</div>
+      <div class="catdetail-title-wrap">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="catdetail-icon" class="catdetail-icon">📦</span>
+          <span id="catdetail-name" class="catdetail-name">Categoría</span>
+        </div>
+        <div id="catdetail-month" class="catdetail-month">—</div>
+      </div>
+    </div>
+
+    <div class="catdetail-stats">
+      <div class="catdetail-stat">
+        <div class="catdetail-stat-label">Total gastado</div>
+        <div class="catdetail-stat-val" id="catdetail-total" style="color:var(--red-light)">$0</div>
+      </div>
+      <div class="catdetail-stat">
+        <div class="catdetail-stat-label">% del gasto</div>
+        <div class="catdetail-stat-val" id="catdetail-pct" style="color:var(--accent)">0%</div>
+      </div>
+      <div class="catdetail-stat">
+        <div class="catdetail-stat-label">Transacciones</div>
+        <div class="catdetail-stat-val" id="catdetail-count">0</div>
+      </div>
+    </div>
+
+    <div class="catdetail-bar-wrap">
+      <div class="catdetail-bar-card">
+        <div class="catdetail-bar-label">
+          <span>% sobre ingresos del mes</span>
+          <span id="catdetail-income-pct">0%</span>
+        </div>
+        <div class="catdetail-bar-track">
+          <div class="catdetail-bar-fill" id="catdetail-bar" style="width:0%;background:var(--accent)"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="catdetail-list-wrap">
+      <div class="catdetail-list-title">Todas las transacciones</div>
+      <div id="catdetail-list">
         <div class="loading"><div class="spinner"></div></div>
       </div>
     </div>
@@ -352,7 +457,7 @@
       <div class="settings-card">
         <div class="settings-item">
           <div class="settings-item-label">MoneyFlow</div>
-          <div class="settings-item-val">v1.0.0</div>
+          <div class="settings-item-val">v1.1.0</div>
         </div>
       </div>
     </div>
@@ -412,20 +517,18 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.js"></script>
 <script>
 // ═══════════════════════════════════════
-//  CONFIG — Tus credenciales de Supabase
+//  CONFIG
 // ═══════════════════════════════════════
 const SUPABASE_URL = 'https://blwmnxdpwnskuiwlmspu.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_RMK_v0soOlAHlUrF5C0Stw_kMAZf5cj';
 
-// ═══════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const now = new Date();
 let state = {
   screen: 'home',
+  prevScreen: 'home',
   month: now.getMonth() + 1,
   year: now.getFullYear(),
   histMonth: now.getMonth() + 1,
@@ -436,6 +539,8 @@ let state = {
   selectedType: 'gasto',
   selectedCatId: null,
   chart: null,
+  catDetailId: null,
+  catDetailData: null,
 };
 
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
@@ -446,17 +551,22 @@ const CAT_COLORS = ['#f59e0b','#3b82f6','#8b5cf6','#22c55e',
 // ═══════════════════════════════════════
 //  NAVEGACIÓN
 // ═══════════════════════════════════════
-function navigate(screen) {
+function navigate(screen, fromScreen) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('screen-' + screen).classList.add('active');
   const navEl = document.getElementById('nav-' + screen);
   if (navEl) navEl.classList.add('active');
+  state.prevScreen = fromScreen || state.screen;
   state.screen = screen;
-  if (screen === 'home')     loadHome();
-  if (screen === 'history')  loadHistory();
-  if (screen === 'settings') loadSettings();
-  if (screen === 'add')      { resetForm(); loadCategoryGrid(); }
+  if (screen === 'home')      loadHome();
+  if (screen === 'history')   loadHistory();
+  if (screen === 'settings')  loadSettings();
+  if (screen === 'add')       { resetForm(); loadCategoryGrid(); }
+}
+
+function goBackFromCatDetail() {
+  navigate(state.prevScreen || 'home');
 }
 
 // ═══════════════════════════════════════
@@ -465,14 +575,12 @@ function navigate(screen) {
 function fmt(n) {
   return Math.round(Math.abs(+n)).toLocaleString('es-CL');
 }
-
 function getGreeting() {
   const h = new Date().getHours();
   if (h < 12) return 'Buenos días';
   if (h < 19) return 'Buenas tardes';
   return 'Buenas noches';
 }
-
 function formatDate(dateStr) {
   const [y, m, d] = dateStr.split('-');
   const today = new Date();
@@ -483,7 +591,6 @@ function formatDate(dateStr) {
   if (diff === 1) return 'Ayer';
   return d + '/' + m + '/' + y.slice(2);
 }
-
 function showToast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -495,19 +602,16 @@ function showToast(msg) {
 //  HOME
 // ═══════════════════════════════════════
 async function loadHome() {
-  // Header
   document.getElementById('greeting-text').textContent = getGreeting() + ',';
   document.getElementById('current-month-label').textContent =
     MONTHS[state.month - 1] + ' ' + state.year;
 
-  // Avatar / nombre
   const name = localStorage.getItem('mf_name') || '';
   const initials = name.length >= 2
     ? name.trim().slice(0, 2).toUpperCase()
     : (name.trim().toUpperCase() || 'MF');
   document.getElementById('user-avatar').textContent = initials;
 
-  // Presupuesto del mes
   const { data: pData } = await db
     .from('presupuesto')
     .select('ingreso_esperado')
@@ -516,11 +620,9 @@ async function loadHome() {
     .maybeSingle();
   state.presupuesto = pData?.ingreso_esperado || 0;
 
-  // Mostrar banner si no hay presupuesto
   document.getElementById('onboarding-banner').style.display =
     state.presupuesto === 0 ? 'block' : 'none';
 
-  // Transacciones del mes
   const { data: txData, error } = await db
     .from('transacciones')
     .select('*, categorias(*)')
@@ -528,48 +630,45 @@ async function loadHome() {
     .eq('anio', state.year)
     .order('fecha', { ascending: false });
 
-  if (error) {
-    showToast('Error al cargar datos');
-    console.error(error);
-    return;
-  }
+  if (error) { showToast('Error al cargar datos'); return; }
   state.transactions = txData || [];
   renderHome();
 }
 
 function renderHome() {
   const txs = state.transactions;
-  const totalIncome  = txs.filter(t => t.tipo === 'ingreso').reduce((a, b) => a + +b.monto, 0);
-  const totalExpense = txs.filter(t => t.tipo === 'gasto').reduce((a, b) => a + +b.monto, 0);
+  const totalIncome  = txs.filter(t => t.tipo === 'ingreso').reduce((a,b) => a + +b.monto, 0);
+  const totalExpense = txs.filter(t => t.tipo === 'gasto').reduce((a,b) => a + +b.monto, 0);
   const balance      = totalIncome - totalExpense;
-
   const base = state.presupuesto || totalIncome;
   const pct  = base > 0 ? Math.min(Math.round((totalExpense / base) * 100), 100) : 0;
 
-  document.getElementById('balance-val').textContent      = fmt(balance);
-  document.getElementById('income-val').textContent       = '$' + fmt(totalIncome);
-  document.getElementById('expense-val').textContent      = '$' + fmt(totalExpense);
+  document.getElementById('balance-val').textContent       = fmt(balance);
+  document.getElementById('income-val').textContent        = '$' + fmt(totalIncome);
+  document.getElementById('expense-val').textContent       = '$' + fmt(totalExpense);
   document.getElementById('expense-pct-label').textContent = pct + '%';
   document.getElementById('expense-progress').style.width  = pct + '%';
   document.getElementById('donut-pct').textContent         = pct + '%';
 
-  // Categorías
   const gastos = txs.filter(t => t.tipo === 'gasto');
   const catMap = {};
   gastos.forEach(t => {
     const cid = t.categoria_id || 'sin';
     if (!catMap[cid]) catMap[cid] = {
+      id: t.categoria_id,
       name: t.categorias?.nombre || 'Sin categoría',
       icono: t.categorias?.icono || '📦',
-      total: 0
+      color: t.categorias?.color || '#6b7280',
+      total: 0,
+      count: 0
     };
     catMap[cid].total += +t.monto;
+    catMap[cid].count++;
   });
 
   const catArr = Object.values(catMap).sort((a, b) => b.total - a.total);
-  renderDonut(catArr, totalExpense);
+  renderDonut(catArr, totalExpense, totalIncome);
 
-  // Últimas 5 transacciones
   const recent = txs.slice(0, 5);
   const listEl = document.getElementById('recent-tx-list');
 
@@ -587,16 +686,15 @@ function renderHome() {
   </div>`;
 
   recent.forEach(tx => {
-    const isGasto   = tx.tipo === 'gasto';
-    const catColor  = tx.categorias?.color || '#6b7280';
-    const dateStr   = formatDate(tx.fecha);
-    const catName   = tx.categorias?.nombre || (isGasto ? 'Gasto' : 'Ingreso');
-    const icon      = tx.categorias?.icono  || (isGasto ? '💸' : '💰');
-    const descLabel = tx.descripcion || catName;
+    const isGasto  = tx.tipo === 'gasto';
+    const catColor = tx.categorias?.color || '#6b7280';
+    const dateStr  = formatDate(tx.fecha);
+    const catName  = tx.categorias?.nombre || (isGasto ? 'Gasto' : 'Ingreso');
+    const icon     = tx.categorias?.icono  || (isGasto ? '💸' : '💰');
     html += `<div class="tx-item">
       <div class="tx-icon" style="background:${catColor}22">${icon}</div>
       <div class="tx-info">
-        <div class="tx-name">${descLabel}</div>
+        <div class="tx-name">${tx.descripcion || catName}</div>
         <div class="tx-meta">${catName} · ${dateStr}</div>
       </div>
       <div class="tx-amount ${isGasto ? 'neg' : 'pos'}">
@@ -608,7 +706,7 @@ function renderHome() {
   listEl.innerHTML = html;
 }
 
-function renderDonut(catArr, totalExpense) {
+function renderDonut(catArr, totalExpense, totalIncome) {
   const legendEl = document.getElementById('category-legend');
 
   if (catArr.length === 0) {
@@ -623,10 +721,10 @@ function renderDonut(catArr, totalExpense) {
     return;
   }
 
-  const top     = catArr.slice(0, 5);
-  const colors  = CAT_COLORS;
-  const data    = top.map(c => c.total);
-  const bgClrs  = top.map((_, i) => colors[i % colors.length]);
+  const top    = catArr.slice(0, 5);
+  const colors = CAT_COLORS;
+  const data   = top.map(c => c.total);
+  const bgClrs = top.map((c, i) => c.color || colors[i % colors.length]);
 
   if (state.chart) { state.chart.destroy(); state.chart = null; }
   const ctx = document.getElementById('donutChart').getContext('2d');
@@ -650,14 +748,129 @@ function renderDonut(catArr, totalExpense) {
 
   legendEl.innerHTML = top.map((cat, i) => {
     const pct = totalExpense > 0 ? Math.round((cat.total / totalExpense) * 100) : 0;
-    return `<div class="legend-item">
+    return `<div class="legend-item" onclick="openCategoryDetail('${cat.id}','${cat.name}','${cat.icono}','${bgClrs[i]}')">
       <div class="legend-left">
         <div class="legend-dot" style="background:${bgClrs[i]}"></div>
         <span class="legend-name">${cat.name}</span>
       </div>
-      <span class="legend-pct">${pct}%</span>
+      <div class="legend-right">
+        <span class="legend-pct">${pct}%</span>
+        <span class="legend-arrow">›</span>
+      </div>
     </div>`;
   }).join('');
+}
+
+// ═══════════════════════════════════════
+//  CATEGORY DETAIL
+// ═══════════════════════════════════════
+async function openCategoryDetail(catId, catName, catIcon, catColor) {
+  // Mostrar pantalla con loading
+  state.catDetailId = catId;
+  document.getElementById('catdetail-icon').textContent = catIcon || '📦';
+  document.getElementById('catdetail-name').textContent = catName;
+  document.getElementById('catdetail-month').textContent =
+    MONTHS[state.month - 1] + ' ' + state.year;
+  document.getElementById('catdetail-list').innerHTML =
+    '<div class="loading"><div class="spinner"></div></div>';
+  document.getElementById('catdetail-bar').style.background = catColor || 'var(--accent)';
+
+  navigate('catdetail', 'home');
+
+  // Traer TODOS los gastos de esta categoría (todos los meses) para historial completo
+  // pero mostrar stats del mes actual
+  const { data: allTx } = await db
+    .from('transacciones')
+    .select('*, categorias(*)')
+    .eq('categoria_id', catId)
+    .eq('tipo', 'gasto')
+    .order('fecha', { ascending: false });
+
+  const txs = allTx || [];
+
+  // Stats del mes actual
+  const monthTxs    = txs.filter(t => t.mes === state.month && t.anio === state.year);
+  const monthTotal  = monthTxs.reduce((a, b) => a + +b.monto, 0);
+  const monthCount  = monthTxs.length;
+
+  // Total de gastos del mes (todas las categorías) para calcular %
+  const totalExpense = state.transactions
+    .filter(t => t.tipo === 'gasto')
+    .reduce((a, b) => a + +b.monto, 0);
+
+  const pctOfExpense = totalExpense > 0
+    ? Math.round((monthTotal / totalExpense) * 100) : 0;
+  const pctOfIncome  = state.presupuesto > 0
+    ? Math.min(Math.round((monthTotal / state.presupuesto) * 100), 100) : 0;
+
+  document.getElementById('catdetail-total').textContent     = '$' + fmt(monthTotal);
+  document.getElementById('catdetail-pct').textContent       = pctOfExpense + '%';
+  document.getElementById('catdetail-count').textContent     = monthCount;
+  document.getElementById('catdetail-income-pct').textContent = pctOfIncome + '%';
+  document.getElementById('catdetail-bar').style.width       = pctOfIncome + '%';
+
+  // Construir lista agrupada por mes
+  if (txs.length === 0) {
+    document.getElementById('catdetail-list').innerHTML =
+      '<div class="tx-empty">Sin transacciones en esta categoría</div>';
+    return;
+  }
+
+  // Agrupar por mes/año
+  const groups = {};
+  txs.forEach(tx => {
+    const key = tx.anio + '-' + String(tx.mes).padStart(2, '0');
+    if (!groups[key]) groups[key] = { label: MONTHS[tx.mes - 1] + ' ' + tx.anio, txs: [] };
+    groups[key].txs.push(tx);
+  });
+
+  let html = '';
+  Object.keys(groups).sort((a, b) => b.localeCompare(a)).forEach(key => {
+    const g         = groups[key];
+    const groupTotal = g.txs.reduce((a, b) => a + +b.monto, 0);
+    html += `<div class="catdetail-month-group">
+      <div class="catdetail-month-label" style="display:flex;justify-content:space-between">
+        <span>${g.label}</span>
+        <span style="color:var(--red-light);font-variant-numeric:tabular-nums">-$${fmt(groupTotal)}</span>
+      </div>
+      <div class="history-tx-card">`;
+
+    g.txs.forEach((tx, idx) => {
+      const isLast = idx === g.txs.length - 1;
+      html += `<div class="tx-item" style="${isLast ? 'border-bottom:none' : ''}">
+        <div class="tx-icon" style="background:${catColor}22">${catIcon}</div>
+        <div class="tx-info">
+          <div class="tx-name">${tx.descripcion || catName}</div>
+          <div class="tx-meta">${formatDate(tx.fecha)}</div>
+        </div>
+        <div class="tx-amount neg">-$${fmt(tx.monto)}</div>
+        <div class="delete-btn" onclick="deleteTxFromDetail('${tx.id}','${catId}','${catName}','${catIcon}','${catColor}')">✕</div>
+      </div>`;
+    });
+
+    html += '</div></div>';
+  });
+
+  document.getElementById('catdetail-list').innerHTML = html;
+}
+
+async function deleteTxFromDetail(txId, catId, catName, catIcon, catColor) {
+  if (!confirm('¿Eliminar esta transacción?')) return;
+  const { error } = await db.from('transacciones').delete().eq('id', txId);
+  if (!error) {
+    showToast('Eliminado');
+    // Refrescar home en background y recargar detalle
+    const { data: txData } = await db
+      .from('transacciones')
+      .select('*, categorias(*)')
+      .eq('mes', state.month)
+      .eq('anio', state.year)
+      .order('fecha', { ascending: false });
+    state.transactions = txData || [];
+    openCategoryDetail(catId, catName, catIcon, catColor);
+  } else {
+    showToast('Error al eliminar');
+  }
 }
 
 // ═══════════════════════════════════════
@@ -687,7 +900,7 @@ async function loadCategoryGrid() {
   }
   const gridEl = document.getElementById('category-grid');
   if (state.categories.length === 0) {
-    gridEl.innerHTML = '<p style="color:var(--text3);font-size:12px;grid-column:1/-1">Sin categorías cargadas</p>';
+    gridEl.innerHTML = '<p style="color:var(--text3);font-size:12px;grid-column:1/-1">Sin categorías</p>';
     return;
   }
   gridEl.innerHTML = state.categories.map(cat => `
@@ -709,8 +922,8 @@ async function submitTransaction() {
   const desc   = document.getElementById('input-desc').value.trim();
   const date   = document.getElementById('input-date').value;
 
-  if (!amount || amount <= 0)                         { showToast('⚠️ Ingresa un monto válido'); return; }
-  if (!date)                                           { showToast('⚠️ Selecciona una fecha');   return; }
+  if (!amount || amount <= 0)  { showToast('⚠️ Ingresa un monto válido'); return; }
+  if (!date)                    { showToast('⚠️ Selecciona una fecha');   return; }
   if (state.selectedType === 'gasto' && !state.selectedCatId) {
     showToast('⚠️ Selecciona una categoría'); return;
   }
@@ -719,26 +932,23 @@ async function submitTransaction() {
   btn.disabled = true;
   btn.textContent = 'Guardando...';
 
-  const parts   = date.split('-');
-  const mes     = parseInt(parts[1], 10);
-  const anio    = parseInt(parts[0], 10);
-
+  const parts = date.split('-');
   const { error } = await db.from('transacciones').insert({
     tipo: state.selectedType,
     monto: amount,
     descripcion: desc || null,
     categoria_id: state.selectedType === 'gasto' ? state.selectedCatId : null,
     fecha: date,
-    mes: mes,
-    anio: anio
+    mes: parseInt(parts[1], 10),
+    anio: parseInt(parts[0], 10)
   });
 
   btn.disabled = false;
   btn.textContent = state.selectedType === 'gasto' ? 'Registrar Gasto' : 'Registrar Ingreso';
 
   if (error) {
+    showToast('❌ Error al guardar');
     console.error(error);
-    showToast('❌ Error al guardar. Verifica el SQL de RLS.');
   } else {
     showToast('✅ ' + (state.selectedType === 'gasto' ? 'Gasto' : 'Ingreso') + ' registrado');
     resetForm();
@@ -763,15 +973,15 @@ async function loadHistory() {
     .order('fecha', { ascending: false });
 
   const list     = data || [];
-  const totalInc = list.filter(t => t.tipo === 'ingreso').reduce((a, b) => a + +b.monto, 0);
-  const totalExp = list.filter(t => t.tipo === 'gasto').reduce((a, b) => a + +b.monto, 0);
+  const totalInc = list.filter(t => t.tipo === 'ingreso').reduce((a,b) => a + +b.monto, 0);
+  const totalExp = list.filter(t => t.tipo === 'gasto').reduce((a,b) => a + +b.monto, 0);
   const bal      = totalInc - totalExp;
 
   document.getElementById('hist-income').textContent  = '$' + fmt(totalInc);
   document.getElementById('hist-expense').textContent = '$' + fmt(totalExp);
   const balEl = document.getElementById('hist-balance');
-  balEl.textContent  = (bal >= 0 ? '+' : '-') + '$' + fmt(bal);
-  balEl.style.color  = bal >= 0 ? 'var(--green-light)' : 'var(--red-light)';
+  balEl.textContent = (bal >= 0 ? '+' : '-') + '$' + fmt(bal);
+  balEl.style.color = bal >= 0 ? 'var(--green-light)' : 'var(--red-light)';
 
   if (list.length === 0) {
     document.getElementById('history-list').innerHTML =
@@ -779,7 +989,6 @@ async function loadHistory() {
     return;
   }
 
-  // Agrupar por fecha
   const groups = {};
   list.forEach(tx => {
     if (!groups[tx.fecha]) groups[tx.fecha] = [];
@@ -791,7 +1000,6 @@ async function loadHistory() {
     html += `<div class="history-date-group">
       <div class="history-date-label">${formatDate(date)}</div>
       <div class="history-tx-card">`;
-
     groups[date].forEach((tx, idx) => {
       const isGasto  = tx.tipo === 'gasto';
       const catColor = tx.categorias?.color || '#6b7280';
@@ -810,7 +1018,6 @@ async function loadHistory() {
         <div class="delete-btn" onclick="deleteTransaction('${tx.id}')">✕</div>
       </div>`;
     });
-
     html += '</div></div>';
   });
 
@@ -848,7 +1055,6 @@ async function loadSettings() {
   document.getElementById('setting-income-val').textContent =
     data?.ingreso_esperado ? '$' + fmt(data.ingreso_esperado) : 'No definido';
 
-  // Lista de categorías
   const { data: cats } = await db.from('categorias').select('*').order('nombre');
   state.categories = cats || [];
 
@@ -864,7 +1070,6 @@ function openIncomeModal() {
   document.getElementById('income-modal').classList.add('open');
   setTimeout(() => document.getElementById('modal-income-input').focus(), 100);
 }
-
 function openNameModal() {
   document.getElementById('modal-name-input').value = localStorage.getItem('mf_name') || '';
   document.getElementById('name-modal').classList.add('open');
@@ -874,21 +1079,15 @@ function openNameModal() {
 async function saveIncome() {
   const val = parseFloat(document.getElementById('modal-income-input').value);
   if (!val || val <= 0) { showToast('Ingresa un monto válido'); return; }
-
   const { error } = await db.from('presupuesto').upsert({
-    mes: state.month,
-    anio: state.year,
-    ingreso_esperado: val
+    mes: state.month, anio: state.year, ingreso_esperado: val
   }, { onConflict: 'mes,anio' });
-
   if (!error) {
     document.getElementById('income-modal').classList.remove('open');
     state.presupuesto = val;
     showToast('✅ Ingreso guardado');
     loadSettings();
-  } else {
-    showToast('Error al guardar');
-  }
+  } else { showToast('Error al guardar'); }
 }
 
 function saveName() {
@@ -900,16 +1099,12 @@ function saveName() {
   loadSettings();
 }
 
-// ═══════════════════════════════════════
-//  MODAL — cerrar al hacer click afuera
-// ═══════════════════════════════════════
+// Cerrar modales al tocar afuera
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => {
     if (e.target === overlay) overlay.classList.remove('open');
   });
 });
-
-// Enter en inputs de modales
 document.getElementById('modal-income-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') saveIncome();
 });
@@ -917,16 +1112,12 @@ document.getElementById('modal-name-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') saveName();
 });
 
-// ═══════════════════════════════════════
-//  SERVICE WORKER (PWA)
-// ═══════════════════════════════════════
+// PWA
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(err => console.log('SW:', err));
 }
 
-// ═══════════════════════════════════════
-//  ARRANQUE
-// ═══════════════════════════════════════
+// Arranque
 loadHome();
 </script>
 </body>
